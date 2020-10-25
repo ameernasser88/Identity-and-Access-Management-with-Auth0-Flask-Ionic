@@ -107,6 +107,21 @@ def create_drink():
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<drink_id>', methods=['PATCH'])
+@cross_origin()
+def update_drink(drink_id):
+    try:
+        drink = Drink.query.get(drink_id)
+        body = request.get_json()
+        new_title = body.get('title', drink.title)
+        new_recipe = body.get('recipe', drink.recipe)
+        drink.update()
+        return jsonify({
+            "success": True
+            , "created": drink.id
+        })
+    except:
+        abort(422)
 
 
 '''
@@ -119,7 +134,18 @@ def create_drink():
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks/<drink_id>', methods=['DELETE'])
+@cross_origin()
+def delete_drink(drink_id):
+    try:
+        drink = Drink.query.get(drink_id)
+        drink.delete()
+        return jsonify({
+            "success": True
+            , "deleted": drink.id
+        })
+    except:
+        abort(400)
 
 ## Error Handling
 '''
@@ -156,3 +182,11 @@ def forbidden(error):
         "error": 403,
         "message": "Forbidden"
         }), 403
+
+@app.errorhandler(400)
+def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "Bad Request"
+    }), 400
