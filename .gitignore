@@ -1,6 +1,8 @@
+node_modules/
+.vscode
+.idea/
+__pycache__
 venv/
-.vscode/
-__pycache__/
 test.db
 
 # OS generated files #
