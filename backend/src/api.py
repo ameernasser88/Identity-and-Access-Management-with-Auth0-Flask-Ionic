@@ -52,7 +52,7 @@ def get_drinks():
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
-@app.route('/drinks', methods=['GET'])
+@app.route('/drinks-detail', methods=['GET'])
 @cross_origin()
 def get_drink_details():
     drinks = Drink.query.order_by(Drink.id).all()
