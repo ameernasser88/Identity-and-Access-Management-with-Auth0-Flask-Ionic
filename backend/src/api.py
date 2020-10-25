@@ -2,7 +2,7 @@ import os
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
-from flask_cors import CORS
+from flask_cors import CORS , cross_origin
 
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
@@ -16,7 +16,7 @@ CORS(app)
 !! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 '''
-db_drop_and_create_all()
+# db_drop_and_create_all()
 
 ## ROUTES
 '''
@@ -27,6 +27,21 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks', methods=['GET'])
+@cross_origin()
+def get_drinks():
+    drinks = Drink.query.order_by(Drink.id).all()
+    formatted_drinks = [drink.title for drink in drinks]
+    if len(formatted_drinks) == 0:
+        abort(404)
+    else:
+        return jsonify(
+            {
+                "success": True
+                , "drinks": formatted_drinks
+                , "total_drinks": len(formatted_drinks)
+            }
+        )
 
 
 '''
@@ -37,7 +52,21 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks', methods=['GET'])
+@cross_origin()
+def get_drink_details():
+    drinks = Drink.query.order_by(Drink.id).all()
+    formatted_drinks = [drink.title for drink in drinks]
+    if len(formatted_drinks) == 0:
+        abort(404)
+    else:
+        return jsonify(
+            {
+                "success": True
+                , "drinks": formatted_drinks
+                , "total_drinks": len(formatted_drinks)
+            }
+        )
 
 '''
 @TODO implement endpoint
@@ -48,6 +77,23 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+
+@app.route('/drinks', methods=['POST'])
+@cross_origin()
+def create_drink():
+    body = request.get_json()
+    new_title = body.get('title', None)
+    new_recipe = body.get('recipe', None)
+    try:
+        new_drink = Drink(title=new_title,recipe=new_recipe)
+        new_drink.insert()
+        return jsonify({
+            "success": True
+            , "created": new_drink.id
+        })
+
+    except:
+        abort(422)
 
 
 '''
@@ -82,10 +128,10 @@ Example error handling for unprocessable entity
 @app.errorhandler(422)
 def unprocessable(error):
     return jsonify({
-                    "success": False, 
-                    "error": 422,
-                    "message": "unprocessable"
-                    }), 422
+                "success": False,
+                "error": 422,
+                "message": "unprocessable"
+                }), 422
 
 @app.errorhandler(404)
 def not_found(error):
@@ -95,7 +141,6 @@ def not_found(error):
         "message": "resource not found"
         }), 404
 
-
 @app.errorhandler(401)
 def unauthorized(error):
     return jsonify({
@@ -103,3 +148,11 @@ def unauthorized(error):
         "error": 401,
         "message": "Unauthorized"
         }), 401
+
+@app.errorhandler(403)
+def forbidden(error):
+    return jsonify({
+        "success": False,
+        "error": 403,
+        "message": "Forbidden"
+        }), 403
