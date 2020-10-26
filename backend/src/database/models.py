@@ -47,7 +47,6 @@ class Drink(db.Model):
         short form representation of the Drink model
     '''
     def short(self):
-        self.recipe = self.recipe.replace("'",'"')
         short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in json.loads(self.recipe)]
         return {
             'id': self.id,
@@ -60,7 +59,6 @@ class Drink(db.Model):
         long form representation of the Drink model
     '''
     def long(self):
-        self.recipe = self.recipe.replace("'", '"')
         return {
             'id': self.id,
             'title': self.title,

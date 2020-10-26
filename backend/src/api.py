@@ -31,7 +31,7 @@ CORS(app)
 @cross_origin()
 def get_drinks():
     drinks = Drink.query.order_by(Drink.id).all()
-    formatted_drinks = [drink.long() for drink in drinks]
+    formatted_drinks = [drink.short() for drink in drinks]
     if len(formatted_drinks) == 0:
         abort(404)
     else:
@@ -88,7 +88,7 @@ def create_drink(jwt):
     new_title = body.get('title', None)
     new_recipe = body.get('recipe', None)
     try:
-        new_drink = Drink(title=new_title,recipe=str(new_recipe))
+        new_drink = Drink(title=new_title,recipe=str(new_recipe).replace("'", '"'))
         new_drink.insert()
         drinks = Drink.query.order_by(Drink.id).all()
         formatted_drinks = [drink.long() for drink in drinks]
