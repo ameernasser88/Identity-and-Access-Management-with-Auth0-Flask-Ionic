@@ -31,7 +31,7 @@ CORS(app)
 @cross_origin()
 def get_drinks():
     drinks = Drink.query.order_by(Drink.id).all()
-    formatted_drinks = [drink.short() for drink in drinks]
+    formatted_drinks = [drink.long() for drink in drinks]
     if len(formatted_drinks) == 0:
         abort(404)
     else:
@@ -66,6 +66,7 @@ def get_drink_details(jwt):
                 "success": True
                 , "drinks": formatted_drinks
                 , "total_drinks": len(formatted_drinks)
+
             }
         )
 
@@ -84,16 +85,18 @@ def get_drink_details(jwt):
 @requires_auth('post:drinks')
 def create_drink(jwt):
     body = request.get_json()
-    print("body is : ")
-    print(body)
     new_title = body.get('title', None)
     new_recipe = body.get('recipe', None)
     try:
         new_drink = Drink(title=new_title,recipe=str(new_recipe))
         new_drink.insert()
+        drinks = Drink.query.order_by(Drink.id).all()
+        formatted_drinks = [drink.long() for drink in drinks]
         return jsonify({
             "success": True
             , "created": new_drink.id
+            , "drinks": formatted_drinks
+            , "total_drinks": len(formatted_drinks)
         })
 
     except:
@@ -121,9 +124,13 @@ def update_drink(drink_id,jwt):
         new_title = body.get('title', drink.title)
         new_recipe = body.get('recipe', drink.recipe)
         drink.update()
+        drinks = Drink.query.order_by(Drink.id).all()
+        formatted_drinks = [drink.long() for drink in drinks]
         return jsonify({
             "success": True
             , "created": drink.id
+            , "drinks": formatted_drinks
+            , "total_drinks": len(formatted_drinks)
         })
     except:
         abort(422)
@@ -145,11 +152,14 @@ def update_drink(drink_id,jwt):
 def delete_drink(drink_id,jwt):
     try:
         drink = Drink.query.get(drink_id)
-        drink.delete()
-        return jsonify({
-            "success": True
-            , "deleted": drink.id
-        })
+        if drink is None:
+            abort(404)
+        else:
+            drink.delete()
+            return jsonify({
+                "success": True
+                , "deleted": drink.id
+            })
     except:
         abort(400)
 
